@@ -1,0 +1,26 @@
+{
+  "name": "messenger-stock-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "facebook-chat-api": "github:bigtongue5566/facebook-chat-api",
+    "iconv-lite": "^0.4.24",
+    "immutable": "^3.8.2",
+    "jsdom": "^12.2.0",
+    "load-json-file": "^5.1.0",
+    "npmlog": "^4.1.2",
+    "puppeteer": "^1.12.2",
+    "write-json-file": "^3.0.2"
+  },
+  "devDependencies": {
+    "dumper.js": "^1.2.0"
+  }
+}
