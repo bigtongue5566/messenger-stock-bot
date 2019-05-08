@@ -23,31 +23,34 @@ const {
 const yahooStock = require('./libs/yahoo-stock');
 const twse = require('./libs/twse-webcrawler');
 class StockBot extends FacebookBot {
+    constructor(filePath) {
+        super(filePath);
+    }
     async init(credentials) {
         let api
         try {
             try {
                 api = await this.loginByCredentials({
-                    appState: await loadJsonFile(FILE_PATH.appState)
+                    appState: await loadJsonFile(this.filePath.appState)
                 });
             } catch (error) {
                 api = await this.loginByPassword(credentials);
             }
-            await writeJsonFile(FILE_PATH.appState, api.getAppState());
+            await writeJsonFile(this.filePath.appState, api.getAppState());
             await this.sendUnsendMessages();
             this.stockUtils = new StockUtils();
             await this.stockUtils.initAsync();
             this.threadMap = await this.loadThreadMap();
         } catch (error) {
-           console.log(error)
+            console.log(error)
         }
         return api
     }
     async loadThreadMap() {
-        log.info('init', 'Load thread settings');
+        log.info('init', 'Load thread config');
         let threadMap;
         try {
-            threadMap = await loadJsonFile(FILE_PATH.threadMap);
+            threadMap = await loadJsonFile(this.filePath.threadMap);
             threadMap = fromJS(threadMap);
         } catch (error) {
             threadMap = Map();
@@ -117,6 +120,40 @@ class StockBot extends FacebookBot {
         await this.sendMessage(threadID, text);
         return thread.set('mode', botMode);
     }
+    async handleInputText(inputText,thread,threadID,BOT_MODE) {
+        switch (true) {
+            case REGEX.textMode.test(inputText):
+                thread = await this.switchMode(thread, threadID, BOT_MODE.text);
+                break;
+            case REGEX.imgMode.test(inputText):
+                thread = await this.switchMode(thread, threadID, BOT_MODE.img);
+                break;
+            case REGEX.offMode.test(inputText):
+                thread = await this.switchMode(thread, threadID, BOT_MODE.off);
+                break;
+            case REGEX.t00.test(inputText):
+                await this.sendRealTimeTseT00Data(threadID, thread.get('mode'));
+                break;
+            case REGEX.investors.test(inputText):
+                await this.sendInvestorsData(threadID);
+                break;
+            default:
+                if (thread.get('mode') !== BOT_MODE.off) {
+                    let stock = this.stockUtils.getStock(inputText);
+                    if (stock) {
+                        await this.sendRealTimeStockData(threadID, thread.get('mode'), stock);
+                    }
+                }
+                break;
+        }
+        return thread;
+    }
+    async createThreadConfig(){
+        let thread = Map();
+        thread = thread.set('mode', BOT_MODE.text);
+        thread = thread.set('userStockMap', Map());
+        return thread;
+    }
     async setEventhandler(api) {
         this.api = api
         let listen = this.setListener(api);
@@ -124,41 +161,15 @@ class StockBot extends FacebookBot {
             let threadID = event.threadID;
             let thread = this.threadMap.get(event.threadID);
             if (!thread) {
-                thread = Map();
-                thread = thread.set('mode', BOT_MODE.text);
-                thread = thread.set('userStockMap', Map());
+                thread = await createThreadConfig();
             }
             if (event.type === 'message') {
                 let inputText = event.body.toLowerCase();
-                switch (true) {
-                    case REGEX.textMode.test(inputText):
-                        thread = await this.switchMode(thread, threadID, BOT_MODE.text);
-                        break;
-                    case REGEX.imgMode.test(inputText):
-                        thread = await this.switchMode(thread, threadID, BOT_MODE.img);
-                        break;
-                    case REGEX.offMode.test(inputText):
-                        thread = await this.switchMode(thread, threadID, BOT_MODE.off);
-                        break;
-                    case REGEX.t00.test(inputText):
-                        await this.sendRealTimeTseT00Data(threadID, thread.get('mode'));
-                        break;
-                    case REGEX.investors.test(inputText):
-                        await this.sendInvestorsData(threadID);
-                        break;
-                    default:
-                        if (thread.get('mode') !== BOT_MODE.off) {
-                            let stock = this.stockUtils.getStock(inputText);
-                            if (stock) {
-                                await this.sendRealTimeStockData(threadID, thread.get('mode'), stock);
-                            }
-                        }
-                        break;
-                }
+                thread = await handleInputText(inputText,thread,threadID,BOT_MODE);
             }
             if (!is(this.threadMap.get(event.threadID), thread)) {
                 this.threadMap = this.threadMap.set(event.threadID, thread);
-                await writeJsonFile(FILE_PATH.threadMap, this.threadMap);
+                await writeJsonFile(this.filePath.threadMap, this.threadMap);
             }
             //await this.markAsRead(threadID);
         });
@@ -167,15 +178,19 @@ class StockBot extends FacebookBot {
 }
 
 (async () => {
-    for(let key in DIRECTORIES){
+    for (let key in DIRECTORIES) {
         if (!fs.existsSync(DIRECTORIES[key])) {
             fs.mkdirSync(DIRECTORIES[key]);
         }
     }
-    let stockBot = new StockBot();
+    let stockBot = new StockBot(FILE_PATH);
     let api = await stockBot.init({
         email: process.env.USERNAME,
         password: process.env.PASSWORD
     });
-    await stockBot.setEventhandler(api);
+    try {
+        await stockBot.setEventhandler(api);
+    } catch (error) {
+        process.exit();
+    }
 })()

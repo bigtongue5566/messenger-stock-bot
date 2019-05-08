@@ -2,6 +2,8 @@ const fs = require('fs');
 const log = require('npmlog');
 const login = require('facebook-chat-api');
 const readline = require('readline');
+const loadJsonFile = require('load-json-file');
+const writeJsonFile = require('write-json-file');
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -11,6 +13,9 @@ const loginOptions = {
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
 }
 class FacebookBot {
+    constructor(filePath){
+        this.filePath = filePath
+    }
     async exit() {
         log.info("exit", new Date().toUTCString());
         process.exit();
@@ -96,20 +101,20 @@ class FacebookBot {
     async addUnsendMessage(message){
         let unsendMessages = [];
         try {
-            unsendMessages = await loadJsonFile(FILE_PATH.unsendMessages);
+            unsendMessages = await loadJsonFile(this.filePath.unsendMessages);
         } catch (error) {
         }
         unsendMessages.push(message);
-        await writeJsonFile(FILE_PATH.unsendMessages, unsendMessages);
+        await writeJsonFile(this.filePath.unsendMessages, unsendMessages);
     }
     async sendUnsendMessages(){   
         try {
-            let unsendMessages = await loadJsonFile(FILE_PATH.unsendMessages);
+            let unsendMessages = await loadJsonFile(this.filePath.unsendMessages);
             log.info('init', 'Send unsend messages');
             while(unsendMessages.length>0){
                 let unsendMessage = unsendMessages.shift();
                 await this.sendMessage(unsendMessage.threadID,unsendMessage.text);
-                await writeJsonFile(FILE_PATH.unsendMessages, unsendMessages);
+                await writeJsonFile(this.filePath.unsendMessages, unsendMessages);
             }
         } catch (error) {
         }
