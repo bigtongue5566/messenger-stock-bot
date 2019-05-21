@@ -19,7 +19,12 @@ async function getRealTimeStockData(stock) {
         fs.mkdirSync(dir);
     }
     let filePath = `./${dir}/${stock.code}.png`;
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox'
+        ]
+    });
     const page = await browser.newPage();
     await page.goto(`https://tw.stock.yahoo.com/q/bc?s=${stock.code}`);
     await page.waitForSelector('.highcharts-container');
@@ -49,7 +54,12 @@ async function getRealTimeTseT00Data() {
         fs.mkdirSync(dir);
     }
     let filePath = `./${dir}/t00.png`;
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox'
+        ]
+    });
     const page = await browser.newPage();
     await page.goto(`https://tw.stock.yahoo.com/s/tse.php`);
     await page.waitForSelector('.highcharts-container')
