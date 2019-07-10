@@ -44,7 +44,7 @@ class StockUtils {
         })
     }
     calcDividendYield(tradePrice,totalDevidend){
-        return totalDevidend/tradePrice;
+        return `${Math.round(totalDevidend/tradePrice*10000)/100}%`;
     }
     isTseCode(stockCode) {
         return this.tseMap.has(stockCode);
