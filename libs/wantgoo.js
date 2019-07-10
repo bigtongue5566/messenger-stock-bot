@@ -8,7 +8,7 @@ async function getDividendPolicy(stock){
         fs.mkdirSync(dir);
     }
     let filePath = `./${dir}/${stock.code}-dp.png`;
-    const browser = await puppeteer.launch({headless:false,
+    const browser = await puppeteer.launch({
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox'
