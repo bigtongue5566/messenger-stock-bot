@@ -17,6 +17,7 @@ const { fromJS, Map, is } = require("immutable");
 const yahooStock = require("./libs/yahoo-stock");
 const twse = require("./libs/twse-webcrawler");
 const {getDividend}= require('./libs/goodInfo');
+const {getDividendPolicy} = require('./libs/wantgoo')
 const schedule = require("node-schedule");
 class StockBot extends FacebookBot {
   constructor(filePath) {
@@ -55,17 +56,25 @@ class StockBot extends FacebookBot {
     await this.sendAttachment(threadID, screenshot);
     await this.sendMessage(threadID, meme.lol);
   }
+  async sendDividendPolicy(threadID,stock){
+    let dividendPolicy = await getDividendPolicy(stock)
+    await this.sendAttachment(threadID, dividendPolicy);
+  }
   async sendThisYearDividendYield(threadID,stock){
     let twseStockData = await twse.getRealTimeStockData(stock);
     let dividendData = await getDividend(stock);
     if(dividendData){
+      let hasCashDevidend = new Date(dividendData.cashDevidendDate) <= new Date();
+      let hasStockDevidend = new Date(dividendData.stockDevidendDate) <= new Date();
       let msg = `發放年度: ${dividendData.year}\n`
-      msg += `除息日: ${dividendData.cashDevidendDate}\n`
-      msg += `除權日: ${dividendData.cashDevidendDate}\n`
+      msg += `除息日: ${dividendData.cashDevidendDate}(${hasCashDevidend&&'已除息'})\n`
+      msg += `除權日: ${dividendData.stockDevidendDate}(${hasStockDevidend&&'已除權'})\n`
       msg += `現金股利: ${dividendData.cashDevidend}\n`
       msg += `股票股利: ${dividendData.stockDevidend}\n`
       msg += `股利合計: ${dividendData.totalDevidend}\n`
-      msg += `現價殖利率: ${this.stockUtils.calcDividendYield(twseStockData.tradePrice,dividendData.totalDevidend)}\n`
+      if(hasCashDevidend&&hasStockDevidend){
+        msg += `現價殖利率: ${this.stockUtils.calcDividendYield(twseStockData.tradePrice,dividendData.totalDevidend)}\n`
+      }      
       await this.sendMessage(threadID, msg);
     }else{
       await this.sendMessage(threadID, RESPONSE.noThisYearDividendData);
@@ -174,6 +183,15 @@ class StockBot extends FacebookBot {
             await this.sendThisYearDividendYield(threadID,stock);
           }          
         }
+        break;
+      case REGEX.dividendPolicy.test(inputText):
+        if (thread.get("mode") !== BOT_MODE.off) {
+          let stock = this.stockUtils.getStock(inputText.split(' ')[0]);
+          if(stock){
+            await this.sendDividendPolicy(threadID,stock);
+          }          
+        }
+        break;
       default:
         if (thread.get("mode") !== BOT_MODE.off) {
           let stock = this.stockUtils.getStock(inputText);

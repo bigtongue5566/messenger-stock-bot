@@ -32,11 +32,12 @@ const REGEX = {
     investors: /^法人$/,
     stocks: /^自選$/,
     t00: /^大盤$/,
-    dividendYield: / dy$/
+    dividendYield: / dy$/,
+    dividendPolicy: / dp$/
 }
 
 const RESPONSE = {
-    help:'股票名稱或代碼\n[查看該股票即時資料]\n股票 yd\n[查看股票殖利率]\nmode:text\n[文字模式]\nmode:img\n[圖片模式]\nmode:off\n[停止]\n法人\n[查看法人買賣超]\n大盤\n[查看大盤資料]\n',
+    help:'股票名稱或代碼\n[查看即時資料]\n股票名稱或代碼 dy\n[查看殖利率]\n股票名稱或代碼 dp\n[查看股利政策]\nmode:text\n[文字模式]\nmode:img\n[圖片模式]\nmode:off\n[停止]\n法人\n[查看法人買賣超]\n大盤\n[查看大盤資料]\n',
     switchTextMode: '切換文字模式',
     switchImgMode: '切換圖片模式',
     switchOffMode: '停止',
