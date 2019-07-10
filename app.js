@@ -16,6 +16,8 @@ const {
 const { fromJS, Map, is } = require("immutable");
 const yahooStock = require("./libs/yahoo-stock");
 const twse = require("./libs/twse-webcrawler");
+const {getDividend}= require('./libs/goodInfo');
+const schedule = require("node-schedule");
 class StockBot extends FacebookBot {
   constructor(filePath) {
     super(filePath);
@@ -53,7 +55,22 @@ class StockBot extends FacebookBot {
     await this.sendAttachment(threadID, screenshot);
     await this.sendMessage(threadID, meme.lol);
   }
-
+  async sendThisYearDividendYield(threadID,stock){
+    let twseStockData = await twse.getRealTimeStockData(stock);
+    let dividendData = await getDividend(stock);
+    if(dividendData){
+      let msg = `發放年度: ${dividendData.year}\n`
+      msg += `除息日: ${dividendData.cashDevidendDate}\n`
+      msg += `除權日: ${dividendData.cashDevidendDate}\n`
+      msg += `現金股利: ${dividendData.cashDevidend}\n`
+      msg += `股票股利: ${dividendData.stockDevidend}\n`
+      msg += `股利合計: ${dividendData.totalDevidend}\n`
+      msg += `現價殖利率: ${this.stockUtils.calcDividendYield(twseStockData.tradePrice,dividendData.totalDevidend)}\n`
+      await this.sendMessage(threadID, msg);
+    }else{
+      await this.sendMessage(threadID, RESPONSE.noThisYearDividendData);
+    }
+  }
   async sendRealTimeTseT00Data(threadID, threadMode) {
     let stock = {
       exType: "tse",
@@ -131,6 +148,7 @@ class StockBot extends FacebookBot {
     return thread.set("mode", botMode);
   }
   async handleInputText(inputText, thread, threadID, BOT_MODE) {
+    console.log(inputText);
     switch (true) {
       case REGEX.textMode.test(inputText):
         thread = await this.switchMode(thread, threadID, BOT_MODE.text);
@@ -144,9 +162,19 @@ class StockBot extends FacebookBot {
       case REGEX.t00.test(inputText):
         await this.sendRealTimeTseT00Data(threadID, thread.get("mode"));
         break;
+      case REGEX.help.test(inputText):
+        await this.sendMessage(threadID,RESPONSE.help);
+        break;
       case REGEX.investors.test(inputText):
         await this.sendInvestorsData(threadID);
         break;
+      case REGEX.dividendYield.test(inputText):
+        if (thread.get("mode") !== BOT_MODE.off) {
+          let stock = this.stockUtils.getStock(inputText.split(' ')[0]);
+          if(stock){
+            await this.sendThisYearDividendYield(threadID,stock);
+          }          
+        }
       default:
         if (thread.get("mode") !== BOT_MODE.off) {
           let stock = this.stockUtils.getStock(inputText);
@@ -171,8 +199,9 @@ class StockBot extends FacebookBot {
   async setEventhandler(api) {
     this.api = api;
     let listen = this.setListener(api);
-    listen(async (err, event) => {
-      try {
+    try {
+      listen(async (err, event) => {
+        if (err) this.exit();
         let threadID = event.threadID;
         let thread = this.threadMap.get(event.threadID);
         if (!thread) {
@@ -191,10 +220,10 @@ class StockBot extends FacebookBot {
           this.threadMap = this.threadMap.set(event.threadID, thread);
           await writeJsonFile(this.filePath.threadMap, this.threadMap);
         }
-      } catch (error) {
-          this.exit();
-      }
-    });
+      });
+    } catch (error) {
+      this.exit();
+    }
   }
 }
 
@@ -215,4 +244,8 @@ class StockBot extends FacebookBot {
     console.error(error);
     process.exit();
   }
+  schedule.scheduleJob("* 8 * * *", function() {
+    console.log("Daily restart");
+    process.exit();
+  });
 })();

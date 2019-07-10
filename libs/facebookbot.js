@@ -67,7 +67,7 @@ class FacebookBot {
               err.continue(twoFactorCode);
               break;
             default:
-              console.error(err);
+              reject(err);
           }
           return;// must have but I don't know why
         }

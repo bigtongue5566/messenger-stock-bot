@@ -1,9 +1,8 @@
-FROM node:10-slim
+FROM node:10.15.3
 
 # See https://crbug.com/795759
 RUN apt-get update && apt-get install -yq libgconf-2-4
 
-RUN apt-get update && apt-get install -yq locales
 RUN apt-get update && apt-get install -yq git
 # Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
 # Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
@@ -41,10 +40,6 @@ RUN npm install
 
 # Run everything after as non-privileged user.
 USER pptruser
-
-RUN locale-gen zh_TW zh_TW.UTF-8
-ENV LANG='zh_TW.UTF-8' LANGUAGE='zh_TW.UTF-8' LC_ALL='zh_TW.UTF-8'
-ENV TZ='Asia/Taipei'
 
 ENTRYPOINT ["dumb-init", "--"]
 

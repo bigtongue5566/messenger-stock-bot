@@ -43,6 +43,9 @@ class StockUtils {
             })
         })
     }
+    calcDividendYield(tradePrice,totalDevidend){
+        return totalDevidend/tradePrice;
+    }
     isTseCode(stockCode) {
         return this.tseMap.has(stockCode);
     }
