@@ -148,7 +148,6 @@ class StockBot extends FacebookBot {
     return thread.set("mode", botMode);
   }
   async handleInputText(inputText, thread, threadID, BOT_MODE) {
-    console.log(inputText);
     switch (true) {
       case REGEX.textMode.test(inputText):
         thread = await this.switchMode(thread, threadID, BOT_MODE.text);
