@@ -1,11 +1,6 @@
 # messenger-stock-bot
 
-發生錯誤時程式會自動關閉
-建議使用pm2、forever來跑
-
-## npm
-
-`npm start`
+使用pm2或是forever
 
 ## forever
 
