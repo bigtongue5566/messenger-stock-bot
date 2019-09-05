@@ -4,6 +4,10 @@
 
 使用個人帳號因此chatbot可以加入群組
 
+## 展示圖
+
+![Imgur](https://imgur.com/crpdFGh.gif)
+
 ## 使用方法
 
 ### forever
