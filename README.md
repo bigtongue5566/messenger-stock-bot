@@ -1,24 +1,30 @@
 # messenger-stock-bot
 
-使用pm2或是forever
+使用[facebook-chat-api](https://github.com/Schmavery/facebook-chat-api)建立
 
-## forever
+使用個人帳號因此chatbot可以加入群組
+
+## 使用方法
+
+### forever
 
 `forever start app.js`
 
-## pm2
+### pm2
 
 `pm2 start app.js`
 
-## docker
+### docker
 
 - build
 
         docker build -t messenger-stock-bot .
 	
-- run image
+- create volume
 
         docker volume create --name stock-bot
+	
+- run image
 
     沒開雙因子認證
 
