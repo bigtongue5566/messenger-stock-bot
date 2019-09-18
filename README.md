@@ -1,18 +1,34 @@
 # messenger-stock-bot
 
+使用[facebook-chat-api](https://github.com/Schmavery/facebook-chat-api)建立
+
+使用個人帳號因此chatbot可以加入群組
+
+## 展示圖
+
+![Imgur](https://imgur.com/crpdFGh.gif)
+
+## 使用方法
+
+### forever
+
+`forever start app.js`
+
+### pm2
+
+`pm2 start app.js`
+
+### docker
+
 - build
 
         docker build -t messenger-stock-bot .
-
-- save/load
-
-	    docker save messenger-stock-bot > bot.tar
-
-	    docker load < bot.tar
 	
-- run image
+- create volume
 
         docker volume create --name stock-bot
+	
+- run image
 
     沒開雙因子認證
 
@@ -21,19 +37,3 @@
     有開雙因子認證
 
         docker run -it --restart=always --cap-add=SYS_ADMIN --env-file env.list -v stock-bot:/home/pptruser/app/data --name bot messenger-stock-bot
-
-- 強制刪除container
-
-        docker rm -f bot
-
-- 刪除所有container
-
-        docker rm $(docker ps -aq)
-
-- 刪除image
-
-        docker rmi messenger-stock-bot
-
-- 刪除所有images
-
-        docker rmi -f $(docker images -aq)
