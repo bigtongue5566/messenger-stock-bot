@@ -1,8 +1,12 @@
 # messenger-stock-bot
 
-使用[facebook-chat-api](https://github.com/Schmavery/facebook-chat-api)建立
+facebook 個人帳號台股機器人 
 
-使用個人帳號因此chatbot可以加入群組
+- 文字與圖片模式
+- 查詢個股即時報價
+- 查詢大盤走勢
+- 三大法人買賣金額
+
 
 ## 展示圖
 
