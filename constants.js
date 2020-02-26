@@ -35,8 +35,8 @@ const REGEX = {
     dividendYield: / dy$/,
     dividendPolicy: / dp$/,
     showAlias: /^alias$/,
-    alias: /^.+ alias .+$/,
-    unalias: /^.+ unalias .+$/
+    alias: /^\S+ alias \S+$/,
+    unalias: /^\S+ unalias \S+$/
 }
 
 const RESPONSE = {

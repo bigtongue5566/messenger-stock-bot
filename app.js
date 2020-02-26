@@ -153,9 +153,24 @@ class StockBot extends FacebookBot {
       thread = thread.getIn(['alias', stock.code])
         ? thread
         : thread.setIn(['alias', stock.code], Set());
-      const aliasSet = Set(thread.getIn(['alias', stock.code])).add(alias);
-      thread = thread.setIn(['alias', stock.code], aliasSet);
-      this.sendMessage(threadID, `${query}\n設定別名\n${alias}`);
+      if (this.stockUtils.getStock(alias)){
+        await this.sendMessage(threadID, `別名${alias}為保留字`);
+      }else{
+        const aliasMap = thread.get('alias').toJSON();
+        let aliases = [];
+        for(const code in aliasMap){
+          aliases = aliases.concat(aliases[code]);
+        }
+        if(aliases.includes(alias)){
+          await this.sendMessage(threadID, `已有別名${alias}`);
+        }else{
+          const aliasSet = Set(thread.getIn(['alias', stock.code])).add(alias);
+          thread = thread.setIn(['alias', stock.code], aliasSet);
+          await this.sendMessage(threadID, `${query}\n設定別名\n${alias}`);
+        }
+      }
+    }else {
+      this.sendMessage(threadID, `查無 ${query}`);
     }
     return thread;
   }
@@ -169,7 +184,9 @@ class StockBot extends FacebookBot {
         : thread.setIn(['alias', stock.code], Set());
       const aliasSet = Set(thread.getIn(['alias', stock.code])).delete(alias);
       thread = thread.setIn(['alias', stock.code], aliasSet);
-      this.sendMessage(threadID, `${query}\n取消別名\n${alias}`);
+      await this.sendMessage(threadID, `${query}\n取消別名\n${alias}`);
+    }else{
+      await this.sendMessage(threadID, `查無 ${query}`);
     }
     return thread;
   }
@@ -186,7 +203,7 @@ class StockBot extends FacebookBot {
       }, '');
       aliasMessage += '\n';
     }
-    this.sendMessage(threadID, aliasMessage);
+    await this.sendMessage(threadID, aliasMessage);
   }
   async switchMode(thread, threadID, botMode) {
     let text;
