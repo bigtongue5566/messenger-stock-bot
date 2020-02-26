@@ -30,7 +30,7 @@ class StockUtils {
                 let stockArr = e.textContent.trim().split("　");
                 this.tseMap.set(stockArr[0].trim(), stockArr[1].trim().toLowerCase());
             })
-        });             
+        });
         this.otcMap = new Map();
         await axios.get('http://isin.twse.com.tw/isin/C_public.jsp?strMode=4', {
             responseType: 'arraybuffer'
@@ -39,7 +39,7 @@ class StockUtils {
             const { document } = (new JSDOM(html)).window;
             document.querySelectorAll('body > table.h4 > tbody > tr > td:nth-child(1):not([colspan="7"]):not([bgcolor="#D5FFD5"])').forEach(e=>{
                 let stockArr = e.textContent.trim().split("　");
-                this.otcMap.set(stockArr[0], stockArr[1].toLowerCase());
+                this.otcMap.set(stockArr[0].trim(), stockArr[1].trim().toLowerCase());
             })
         })
     }
@@ -104,11 +104,12 @@ class StockUtils {
     }
     getStock(text) {
         let stock = null;
-        if (this.isStockCode(text)) {
-            stock = this.getStockByCode(text);
+        if (this.isStockCode(text.toUpperCase())) {
+            stock = this.getStockByCode(text.toUpperCase());
         } else if (this.isStockName(text)) {
             stock = this.getStockByName(text);
         }
+
         return stock;
     }
 }

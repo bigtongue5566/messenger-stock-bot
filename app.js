@@ -1,24 +1,24 @@
-const FacebookBot = require("./libs/facebookbot");
-const { StockUtils } = require("./libs/stockUtils");
-const log = require("npmlog");
-const fs = require("fs");
-const investors = require("./libs/investors");
-const loadJsonFile = require("load-json-file");
-const writeJsonFile = require("write-json-file");
-const meme = require("./libs/meme");
+const FacebookBot = require('./libs/facebookbot');
+const { StockUtils } = require('./libs/stockUtils');
+const log = require('npmlog');
+const fs = require('fs');
+const investors = require('./libs/investors');
+const loadJsonFile = require('load-json-file');
+const writeJsonFile = require('write-json-file');
+const meme = require('./libs/meme');
 const {
   BOT_MODE,
   REGEX,
   FILE_PATH,
   RESPONSE,
   DIRECTORIES
-} = require("./constants");
-const { fromJS, Map, is } = require("immutable");
-const yahooStock = require("./libs/yahoo-stock");
-const twse = require("./libs/twse-webcrawler");
-const {getDividend}= require('./libs/goodInfo');
-const {getDividendPolicy} = require('./libs/wantgoo')
-const schedule = require("node-schedule");
+} = require('./constants');
+const { fromJS, Map, is, Set } = require('immutable');
+const yahooStock = require('./libs/yahoo-stock');
+const twse = require('./libs/twse-webcrawler');
+const { getDividend } = require('./libs/goodInfo');
+const { getDividendPolicy } = require('./libs/wantgoo');
+const schedule = require('node-schedule');
 class StockBot extends FacebookBot {
   constructor(filePath) {
     super(filePath);
@@ -40,7 +40,7 @@ class StockBot extends FacebookBot {
     return api;
   }
   async loadThreadMap() {
-    log.info("init", "Load thread config");
+    log.info('init', 'Load thread config');
     let threadMap;
     try {
       threadMap = await loadJsonFile(this.filePath.threadMap);
@@ -56,35 +56,42 @@ class StockBot extends FacebookBot {
     await this.sendAttachment(threadID, screenshot);
     await this.sendMessage(threadID, meme.lol);
   }
-  async sendDividendPolicy(threadID,stock){
-    let dividendPolicy = await getDividendPolicy(stock)
+  async sendDividendPolicy(threadID, stock) {
+    let dividendPolicy = await getDividendPolicy(stock);
     await this.sendAttachment(threadID, dividendPolicy);
   }
-  async sendThisYearDividendYield(threadID,stock){
+  async sendThisYearDividendYield(threadID, stock) {
     let twseStockData = await twse.getRealTimeStockData(stock);
     let dividendData = await getDividend(stock);
-    if(dividendData){
-      let hasCashDevidend = new Date(dividendData.cashDevidendDate) <= new Date();
-      let hasStockDevidend = new Date(dividendData.stockDevidendDate) <= new Date();
-      let msg = `發放年度: ${dividendData.year}\n`
-      msg += `除息日: ${dividendData.cashDevidendDate}(${hasCashDevidend&&'已除息'})\n`
-      msg += `除權日: ${dividendData.stockDevidendDate}(${hasStockDevidend&&'已除權'})\n`
-      msg += `現金股利: ${dividendData.cashDevidend}\n`
-      msg += `股票股利: ${dividendData.stockDevidend}\n`
-      msg += `股利合計: ${dividendData.totalDevidend}\n`
-      if(hasCashDevidend&&hasStockDevidend){
-        msg += `現價殖利率: ${this.stockUtils.calcDividendYield(twseStockData.tradePrice,dividendData.totalDevidend)}\n`
-      }      
+    if (dividendData) {
+      let hasCashDevidend =
+        new Date(dividendData.cashDevidendDate) <= new Date();
+      let hasStockDevidend =
+        new Date(dividendData.stockDevidendDate) <= new Date();
+      let msg = `發放年度: ${dividendData.year}\n`;
+      msg += `除息日: ${dividendData.cashDevidendDate}(${hasCashDevidend &&
+        '已除息'})\n`;
+      msg += `除權日: ${dividendData.stockDevidendDate}(${hasStockDevidend &&
+        '已除權'})\n`;
+      msg += `現金股利: ${dividendData.cashDevidend}\n`;
+      msg += `股票股利: ${dividendData.stockDevidend}\n`;
+      msg += `股利合計: ${dividendData.totalDevidend}\n`;
+      if (hasCashDevidend && hasStockDevidend) {
+        msg += `現價殖利率: ${this.stockUtils.calcDividendYield(
+          twseStockData.tradePrice,
+          dividendData.totalDevidend
+        )}\n`;
+      }
       await this.sendMessage(threadID, msg);
-    }else{
+    } else {
       await this.sendMessage(threadID, RESPONSE.noThisYearDividendData);
     }
   }
   async sendRealTimeTseT00Data(threadID, threadMode) {
     let stock = {
-      exType: "tse",
-      code: "t00",
-      name: "大盤"
+      exType: 'tse',
+      code: 't00',
+      name: '大盤'
     };
     let memeText;
     switch (threadMode) {
@@ -138,6 +145,49 @@ class StockBot extends FacebookBot {
         break;
     }
   }
+  async setAlias(thread, threadID, inputText) {
+    const query = inputText.split(' ')[0];
+    const alias = inputText.split(' ')[2];
+    const stock = this.stockUtils.getStock(query);
+    if (stock) {
+      thread = thread.getIn(['alias', stock.code])
+        ? thread
+        : thread.setIn(['alias', stock.code], Set());
+      const aliasSet = Set(thread.getIn(['alias', stock.code])).add(alias);
+      thread = thread.setIn(['alias', stock.code], aliasSet);
+      this.sendMessage(threadID, `${query}\n設定別名\n${alias}`);
+    }
+    return thread;
+  }
+  async deleteAlias(thread, threadID, inputText) {
+    const query = inputText.split(' ')[0];
+    const alias = inputText.split(' ')[2];
+    const stock = this.stockUtils.getStock(query);
+    if (stock) {
+      thread = thread.getIn(['alias', stock.code])
+        ? thread
+        : thread.setIn(['alias', stock.code], Set());
+      const aliasSet = Set(thread.getIn(['alias', stock.code])).delete(alias);
+      thread = thread.setIn(['alias', stock.code], aliasSet);
+      this.sendMessage(threadID, `${query}\n取消別名\n${alias}`);
+    }
+    return thread;
+  }
+  async sendAllAlias(thread, threadID) {
+    const aliases = thread.get('alias').toJSON();
+    let aliasMessage = '';
+    for (const code in aliases) {
+      const stock = this.stockUtils.getStockByCode(code);
+      aliasMessage += `${stock.code} ${stock.name}:\n`;
+      aliasMessage += aliases[code].reduce((pre, cur, ind) => {
+        return ind === aliases[code].length - 1
+          ? `${pre}${cur}`
+          : `${pre}${cur},`;
+      }, '');
+      aliasMessage += '\n';
+    }
+    this.sendMessage(threadID, aliasMessage);
+  }
   async switchMode(thread, threadID, botMode) {
     let text;
     switch (botMode) {
@@ -154,7 +204,7 @@ class StockBot extends FacebookBot {
         break;
     }
     await this.sendMessage(threadID, text);
-    return thread.set("mode", botMode);
+    return thread.set('mode', botMode);
   }
   async handleInputText(inputText, thread, threadID, BOT_MODE) {
     switch (true) {
@@ -168,37 +218,55 @@ class StockBot extends FacebookBot {
         thread = await this.switchMode(thread, threadID, BOT_MODE.off);
         break;
       case REGEX.t00.test(inputText):
-        await this.sendRealTimeTseT00Data(threadID, thread.get("mode"));
+        await this.sendRealTimeTseT00Data(threadID, thread.get('mode'));
         break;
       case REGEX.help.test(inputText):
-        await this.sendMessage(threadID,RESPONSE.help);
+        await this.sendMessage(threadID, RESPONSE.help);
         break;
       case REGEX.investors.test(inputText):
         await this.sendInvestorsData(threadID);
         break;
       case REGEX.dividendYield.test(inputText):
-        if (thread.get("mode") !== BOT_MODE.off) {
+        if (thread.get('mode') !== BOT_MODE.off) {
           let stock = this.stockUtils.getStock(inputText.split(' ')[0]);
-          if(stock){
-            await this.sendThisYearDividendYield(threadID,stock);
-          }          
+          if (stock) {
+            await this.sendThisYearDividendYield(threadID, stock);
+          }
         }
         break;
       case REGEX.dividendPolicy.test(inputText):
-        if (thread.get("mode") !== BOT_MODE.off) {
+        if (thread.get('mode') !== BOT_MODE.off) {
           let stock = this.stockUtils.getStock(inputText.split(' ')[0]);
-          if(stock){
-            await this.sendDividendPolicy(threadID,stock);
-          }          
+          if (stock) {
+            await this.sendDividendPolicy(threadID, stock);
+          }
         }
         break;
+      case REGEX.showAlias.test(inputText):
+        await this.sendAllAlias(thread, threadID);
+        break;
+      case REGEX.alias.test(inputText):
+        thread = await this.setAlias(thread, threadID, inputText);
+        break;
+      case REGEX.unalias.test(inputText): {
+        thread = await this.deleteAlias(thread, threadID, inputText);
+        break;
+      }
       default:
-        if (thread.get("mode") !== BOT_MODE.off) {
-          let stock = this.stockUtils.getStock(inputText);
+        if (thread.get('mode') !== BOT_MODE.off) {
+          const alias = thread.get('alias');
+          const keyValue =
+            alias === undefined
+              ? undefined
+              : alias.findEntry(value => {
+                  return value.find(value=>value===inputText);
+                });
+          const query = keyValue === undefined ? inputText : keyValue[0];
+          const stock = this.stockUtils.getStock(query);
           if (stock) {
             await this.sendRealTimeStockData(
               threadID,
-              thread.get("mode"),
+              thread.get('mode'),
               stock
             );
           }
@@ -209,22 +277,23 @@ class StockBot extends FacebookBot {
   }
   async createThreadConfig() {
     let thread = Map();
-    thread = thread.set("mode", BOT_MODE.text);
-    thread = thread.set("userStockMap", Map());
+    thread = thread.set('mode', BOT_MODE.text);
+    thread = thread.set('userStockMap', Map());
+    thread = thread.set('alias', Map());
     return thread;
   }
   async setEventhandler(api) {
     this.api = api;
     let listen = this.setListener(api);
-    try {
-      listen(async (err, event) => {
+    listen(async (err, event) => {
+      try {
         if (err) this.exit();
         let threadID = event.threadID;
         let thread = this.threadMap.get(event.threadID);
         if (!thread) {
           thread = await this.createThreadConfig();
         }
-        if (event.type === "message") {
+        if (event.type === 'message') {
           let inputText = event.body.toLowerCase();
           thread = await this.handleInputText(
             inputText,
@@ -237,10 +306,11 @@ class StockBot extends FacebookBot {
           this.threadMap = this.threadMap.set(event.threadID, thread);
           await writeJsonFile(this.filePath.threadMap, this.threadMap);
         }
-      });
-    } catch (error) {
-      this.exit();
-    }
+      } catch (error) {
+        console.log(error);
+        this.exit();
+      }
+    });
   }
 }
 
@@ -261,8 +331,8 @@ class StockBot extends FacebookBot {
     console.error(error);
     process.exit();
   }
-  schedule.scheduleJob("* 8 * * *", function() {
-    console.log("Daily restart");
+  schedule.scheduleJob('* 8 * * *', function() {
+    console.log('Daily restart');
     process.exit();
   });
 })();

@@ -121,7 +121,7 @@ class FacebookBot {
     api.setOptions({
       listenEvents: true
     });
-    return api.listen;
+    return api.listenMqtt;
   }
 }
 

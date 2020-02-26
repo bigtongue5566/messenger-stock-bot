@@ -33,11 +33,14 @@ const REGEX = {
     stocks: /^自選$/,
     t00: /^大盤$/,
     dividendYield: / dy$/,
-    dividendPolicy: / dp$/
+    dividendPolicy: / dp$/,
+    showAlias: /^alias$/,
+    alias: /^.+ alias .+$/,
+    unalias: /^.+ unalias .+$/
 }
 
 const RESPONSE = {
-    help:'股票名稱或代碼\n[查看即時資料]\n股票名稱或代碼 dy\n[查看殖利率]\n股票名稱或代碼 dp\n[查看股利政策]\nmode:text\n[文字模式]\nmode:img\n[圖片模式]\nmode:off\n[停止]\n法人\n[查看法人買賣超]\n大盤\n[查看大盤資料]\n',
+    help:`股票名稱或代碼\n[查看即時資料]\n股票名稱或代碼 dy\n[查看殖利率]\n股票名稱或代碼 dp\n[查看股利政策]\nmode:text\n[文字模式]\nmode:img\n[圖片模式]\nmode:off\n[停止]\n法人\n[查看法人買賣超]\n大盤\n[查看大盤資料]\n股票名稱或代碼 alias 別名\n[設定別名]\n股票名稱或代碼 unalias 別名\n[取消別名]\nalias\n[顯示所有別名]`,
     switchTextMode: '切換文字模式',
     switchImgMode: '切換圖片模式',
     switchOffMode: '停止',
