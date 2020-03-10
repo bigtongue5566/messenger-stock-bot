@@ -95,7 +95,7 @@ async function parkTonight() {
 }
 
 const MEME = {
-    lol: ['笑鼠人'],
+    lol: ['笑鼠人','丸了','丸子','外資小兒洗碗'],
     earnMuch: [],
     earn: ['睏霸鼠錢', '賺', '起飛', '無腦多', '糕點到了?', '空軍不死 多頭不止', '古拉克利多', '等康普漲回130 再裝回APP'],
     lossMuch: [parkTonight],

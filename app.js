@@ -35,7 +35,7 @@ class StockBot extends FacebookBot {
     await writeJsonFile(this.filePath.appState, api.getAppState());
     await this.sendUnsendMessages();
     this.stockUtils = new StockUtils();
-    await this.stockUtils.initAsync();
+    await this.stockUtils.initAsync('data');
     this.threadMap = await this.loadThreadMap();
     return api;
   }
@@ -159,7 +159,7 @@ class StockBot extends FacebookBot {
         const aliasMap = thread.get('alias').toJSON();
         let aliases = [];
         for(const code in aliasMap){
-          aliases = aliases.concat(aliases[code]);
+          aliases = aliases.concat(aliasMap[code]);
         }
         if(aliases.includes(alias)){
           await this.sendMessage(threadID, `已有別名${alias}`);
@@ -195,13 +195,15 @@ class StockBot extends FacebookBot {
     let aliasMessage = '';
     for (const code in aliases) {
       const stock = this.stockUtils.getStockByCode(code);
-      aliasMessage += `${stock.code} ${stock.name}:\n`;
-      aliasMessage += aliases[code].reduce((pre, cur, ind) => {
-        return ind === aliases[code].length - 1
-          ? `${pre}${cur}`
-          : `${pre}${cur},`;
-      }, '');
-      aliasMessage += '\n';
+      if(aliases[code].length){
+        aliasMessage += `${stock.code} ${stock.name}:\n`;
+        aliasMessage += aliases[code].reduce((pre, cur, ind) => {
+          return ind === aliases[code].length - 1
+            ? `${pre}${cur}`
+            : `${pre}${cur},`;
+        }, '');
+        aliasMessage += '\n';
+      }
     }
     await this.sendMessage(threadID, aliasMessage);
   }
