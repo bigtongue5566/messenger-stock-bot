@@ -103,7 +103,7 @@ class FacebookBot {
         await writeJsonFile(this.filePath.unsendMessages, unsendMessages);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   }
 

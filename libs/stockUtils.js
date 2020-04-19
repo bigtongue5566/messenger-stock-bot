@@ -35,7 +35,6 @@ class StockUtils {
         const stockArr = e.textContent.trim().split('　');
         this.tseMap = this.tseMap.set(stockArr[0].trim(), stockArr[1].trim().toLowerCase());
       });
-      console.log(`${dirPath}/tseMap.json`);
       await writeJsonFile(`${dirPath}/tseMap.json`, this.tseMap.toJSON());
     } catch (error) {
       log.error('StockUtils', error.message);
