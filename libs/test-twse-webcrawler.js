@@ -1,13 +1,10 @@
 const twse = require('./twse-webcrawler');
-const {StockUtils} = require('./stockUtils');
-const {dump} = require('dumper.js');
+const { StockUtils } = require('./stockUtils');
 
-(async()=>{
-	const stockUtils = new StockUtils();
-	await stockUtils.initAsync();
-	let stock = stockUtils.getStock('帆宣');
-	dump(stock);
-	let stockRealtimeData = twse.getRealTimeStockData(stock);
-	dump(stockRealtimeData);
-	//twse.getRealTimeStockData()
-})()
+(async () => {
+  const stockUtils = new StockUtils();
+  await stockUtils.initAsync();
+  const stock = stockUtils.getStock('帆宣');
+  const stockRealtimeData = twse.getRealTimeStockData(stock);
+  console.log(stockRealtimeData);
+})();
