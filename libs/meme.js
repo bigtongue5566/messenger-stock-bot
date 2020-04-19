@@ -3,95 +3,92 @@ const {
     getRegionWeather
 } = require('./weather')
 
-function KindReminder() {
-    let rainRegion = [];
-    let coldRegion = [];
-    let chillyRegion = [];
-    let burningRegion = [];
-    let hotRegion = [];
-    let comfortableRegion = [];
-    this.add = function (regionWeather) {
-        if (regionWeather.internals.tonightToMorning.status.includes('雨')) {
-            rainRegion.push(regionWeather);
-            return
-        }
-        if (regionWeather.internals.tonightToMorning.feeling === '舒適') {
-            comfortableRegion.push(regionWeather);
-            return
-        }
-        if (regionWeather.internals.tonightToMorning.feeling.includes('寒冷')) {
-            coldRegion.push(regionWeather);
-            return
-        }
-        if (regionWeather.internals.tonightToMorning.feeling.includes('寒意')) {
-            chillyRegion.push(regionWeather);
-            return
-        }
-        if (regionWeather.internals.tonightToMorning.feeling.includes('中暑')) {
-            burningRegion.push(regionWeather);
-            return
-        }
-        if (regionWeather.internals.tonightToMorning.feeling.includes('悶熱')) {
-            hotRegion.push(regionWeather);
-            return
-        }
-    }
-    this.toString = function () {
-        let minder = '貼心小叮嚀:\n';
-        minder += '今晚\n';
-        if (rainRegion.length) {
-            minder += rainRegion.reduce((accumulator, currentValue) => {
-                return `${accumulator}${currentValue.name} ${currentValue.internals.tonightToMorning.status}\n`
-            }, '')
-            minder += '住公園的慘戶\n記得攜帶雨具\n\n';
-        }
-        if (coldRegion.length) {
-            minder += coldRegion.reduce((accumulator, currentValue) => {
-                return `${accumulator}${currentValue.name} ${currentValue.internals.tonightToMorning.feeling}\n`
-            }, '')
-            minder += `住公園的慘戶\n注意保暖\n\n`;
-        }
-        if (chillyRegion.length) {
-            minder += chillyRegion.reduce((accumulator, currentValue) => {
-                return `${accumulator}${currentValue.name} ${currentValue.internals.tonightToMorning.feeling}\n`
-            }, '')
-            minder += `住公園的慘戶\n記得多加件外套\n\n`;
-        }
-        if (burningRegion.length) {
-            minder += burningRegion.reduce((accumulator, currentValue) => {
-                return `${accumulator}${currentValue.name} ${currentValue.internals.tonightToMorning.feeling}\n`
-            }, '')
-            minder += `住公園的慘戶\n小心中暑\n\n`;
-        }
-        if (hotRegion.length) {
-            minder += hotRegion.reduce((accumulator, currentValue) => {
-                return `${accumulator}${currentValue.name} ${currentValue.internals.tonightToMorning.feeling}\n`
-            }, '')
-            minder += `住公園的慘戶\n記得多補充水分\n\n`;
-        }
-        if (comfortableRegion.length) {
-            minder += comfortableRegion.reduce((accumulator, currentValue) => {
-                return `${accumulator}${currentValue.name} ${currentValue.internals.tonightToMorning.feeling}\n`
-            }, '')
-            minder += `住公園的慘戶\n不用擔心\n\n`;
-        }
-        return minder;
+class SweetReminder {
+    constructor() {
+        let rainRegion = [];
+        let coldRegion = [];
+        let chillyRegion = [];
+        let burningRegion = [];
+        let hotRegion = [];
+        let comfortableRegion = [];
+        this.add = function (regionWeather) {
+            if (regionWeather.internals.tonightToMorning.status.includes('雨')) {
+                rainRegion.push(regionWeather);
+                return;
+            }
+            if (regionWeather.internals.tonightToMorning.feeling === '舒適') {
+                comfortableRegion.push(regionWeather);
+                return;
+            }
+            if (regionWeather.internals.tonightToMorning.feeling.includes('寒冷')) {
+                coldRegion.push(regionWeather);
+                return;
+            }
+            if (regionWeather.internals.tonightToMorning.feeling.includes('寒意')) {
+                chillyRegion.push(regionWeather);
+                return;
+            }
+            if (regionWeather.internals.tonightToMorning.feeling.includes('中暑')) {
+                burningRegion.push(regionWeather);
+                return;
+            }
+            if (regionWeather.internals.tonightToMorning.feeling.includes('悶熱')) {
+                hotRegion.push(regionWeather);
+                return;
+            }
+        };
+        this.toString = function () {
+            let str = '貼心小叮嚀:\n';
+            str += '今晚\n';
+            if (rainRegion.length) {
+                str += rainRegion.reduce((accumulator, currentValue) => {
+                    return `${accumulator}${currentValue.name} ${currentValue.internals.tonightToMorning.status}\n`;
+                }, '');
+                str += '住公園的慘戶\n記得攜帶雨具\n\n';
+            }
+            if (coldRegion.length) {
+                str += coldRegion.reduce((accumulator, currentValue) => {
+                    return `${accumulator}${currentValue.name} ${currentValue.internals.tonightToMorning.feeling}\n`;
+                }, '');
+                str += `住公園的慘戶\n注意保暖\n\n`;
+            }
+            if (chillyRegion.length) {
+                str += chillyRegion.reduce((accumulator, currentValue) => {
+                    return `${accumulator}${currentValue.name} ${currentValue.internals.tonightToMorning.feeling}\n`;
+                }, '');
+                str += `住公園的慘戶\n記得多加件外套\n\n`;
+            }
+            if (burningRegion.length) {
+                str += burningRegion.reduce((accumulator, currentValue) => {
+                    return `${accumulator}${currentValue.name} ${currentValue.internals.tonightToMorning.feeling}\n`;
+                }, '');
+                str += `住公園的慘戶\n小心中暑\n\n`;
+            }
+            if (hotRegion.length) {
+                str += hotRegion.reduce((accumulator, currentValue) => {
+                    return `${accumulator}${currentValue.name} ${currentValue.internals.tonightToMorning.feeling}\n`;
+                }, '');
+                str += `住公園的慘戶\n記得多補充水分\n\n`;
+            }
+            if (comfortableRegion.length) {
+                str += comfortableRegion.reduce((accumulator, currentValue) => {
+                    return `${accumulator}${currentValue.name} ${currentValue.internals.tonightToMorning.feeling}\n`;
+                }, '');
+                str += `住公園的慘戶\n不用擔心\n\n`;
+            }
+            return str;
+        };
     }
 }
 
 async function parkTonight() {
     let pickedRegions = [regionName.Taipei_City, regionName.Taichung_City, regionName.Changhua_County]
-    let kindReminder = new KindReminder();
-    //let meme = '';
+    let sweetReminder = new SweetReminder();
     for (let region of pickedRegions) {
         let regionWeather = await getRegionWeather(region);
-        kindReminder.add(regionWeather);
-        // meme += `${regionWeather.name} 今晚\n`
-        // meme += `${regionWeather.internals.tonightToMorning.status}\n`
-        // meme += `${regionWeather.internals.tonightToMorning.feeling}\n`
-        // meme += `\n`
+        sweetReminder.add(regionWeather);
     }
-    return `${kindReminder.toString()}`
+    return `${sweetReminder.toString()}`
 }
 
 const MEME = {
